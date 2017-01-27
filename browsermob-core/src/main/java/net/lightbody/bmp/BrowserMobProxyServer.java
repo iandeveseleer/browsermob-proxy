@@ -311,7 +311,7 @@ public class BrowserMobProxyServer implements BrowserMobProxy {
         }
 
 
-        if (!mitmDisabled) {
+
             if (mitmManager == null) {
                 mitmManager = ImpersonatingMitmManager.builder()
                         .rootCertificateSource(new KeyStoreFileCertificateSource(
@@ -325,7 +325,7 @@ public class BrowserMobProxyServer implements BrowserMobProxy {
             }
 
             bootstrap.withManInTheMiddle(mitmManager);
-        }
+
 
         if (readBandwidthLimitBps > 0 || writeBandwidthLimitBps > 0) {
             bootstrap.withThrottling(readBandwidthLimitBps, writeBandwidthLimitBps);
@@ -579,6 +579,21 @@ public class BrowserMobProxyServer implements BrowserMobProxy {
         //Iterate on each entry of Har to find one which got pageRef
         for (HarEntry entry : getHar().getLog().getEntries()) {
             if(entry.getPageref().equals(pageRef))
+            {
+                entries.add(entry);
+            }
+        }
+        return entries;
+    }
+
+    @Override
+    public List<HarEntry> getEntriesWithPageRefContainingUrl(String pageRef, String pUrl) {
+
+        List<HarEntry> entries = new ArrayList<HarEntry>();
+
+        //Iterate on entries from HarEntry ArrayList
+        for (HarEntry entry : getEntriesWithPageRef(pageRef)) {
+            if(entry.getRequest().getUrl().contains(pUrl))
             {
                 entries.add(entry);
             }

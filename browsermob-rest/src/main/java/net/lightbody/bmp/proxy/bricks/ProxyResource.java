@@ -194,6 +194,17 @@ public class ProxyResource {
     }
 
     @Get
+    @At("/:port/har/entries/:pageRef/url/:pattern")
+    public Reply<?> getEntriesContainingUrl(@Named("port") int port, @Named("pageRef") String pageRef, @Named("pattern") String pattern, Request<String> request) {
+        LegacyProxyServer proxy = proxyManager.get(port);
+        if (proxy == null) {
+            return Reply.saying().notFound();
+        }
+
+        return Reply.with(proxy.getEntriesWithPageRefContainingUrl(pageRef, pattern)).as(Json.class);
+    }
+
+    @Get
     @At("/:port/blacklist")
     public Reply<?> getBlacklist(@Named("port") int port, Request<String> request) {
         LegacyProxyServer proxy = proxyManager.get(port);

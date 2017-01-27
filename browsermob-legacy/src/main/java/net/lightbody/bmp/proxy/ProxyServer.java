@@ -461,9 +461,24 @@ public class ProxyServer implements LegacyProxyServer, BrowserMobProxy {
 
         List<HarEntry> entries = new ArrayList<HarEntry>();
 
-        //Iterate on each entry of Har to find one which got pageRef
+        //Iterate on entries from Har
         for (HarEntry entry : client.getHar().getLog().getEntries()) {
             if(entry.getPageref().equals(pageRef))
+            {
+                entries.add(entry);
+            }
+        }
+        return entries;
+    }
+
+    @Override
+    public List<HarEntry> getEntriesWithPageRefContainingUrl(String pageRef, String pUrl) {
+
+        List<HarEntry> entries = new ArrayList<HarEntry>();
+
+        //Iterate on entries from HarEntry ArrayList
+        for (HarEntry entry : getEntriesWithPageRef(pageRef)) {
+            if(entry.getRequest().getUrl().contains(pUrl))
             {
                 entries.add(entry);
             }

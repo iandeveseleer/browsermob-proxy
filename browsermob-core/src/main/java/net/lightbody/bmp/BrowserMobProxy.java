@@ -227,13 +227,19 @@ public interface BrowserMobProxy {
 
 
     /**
-     * Starts a new HAR page using the specified pageRef as the page name and the pageTitle as the page title. Populates the
-     * {@link net.lightbody.bmp.core.har.HarPageTimings#onLoad} value based on the amount of time the current page has been captured.
-     *
      * @param pageRef name of the page in Har
-     * @return the HarLog with only entries which got the pageRef tag
+     * @return HarEntry ArrayList with only entries which got the specified parameters
      */
     List<HarEntry> getEntriesWithPageRef(String pageRef);
+
+    /**
+
+     * @param pageRef name of the page in Har
+     * @param pattern regex of url pattern we want to search
+     * @return HarEntry ArrayList with only entries which got the specified parameters
+     */
+    List<HarEntry> getEntriesWithPageRefContainingUrl(String pageRef, String pattern);
+
 
     /**
      * Stops capturing traffic in the HAR. Populates the {@link net.lightbody.bmp.core.har.HarPageTimings#onLoad} value for the current page

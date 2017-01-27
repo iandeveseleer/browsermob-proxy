@@ -1,38 +1,40 @@
 package net.lightbody.bmp.proxy;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
 import java.util.HashMap;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import org.junit.Test;
 
 import net.lightbody.bmp.core.har.HarEntry;
 import net.lightbody.bmp.core.har.HarLog;
 import net.lightbody.bmp.core.har.HarPage;
+import net.lightbody.bmp.core.har.HarRequest;
 import net.lightbody.bmp.exception.ProxyExistsException;
 import net.lightbody.bmp.exception.ProxyPortsExhaustedException;
 import net.lightbody.bmp.proxy.test.util.ProxyManagerTest;
-import org.junit.Test;
 
 public class ProxyPortAssignmentTest extends ProxyManagerTest {
 
     @Override
     public String[] getArgs() {
-        return new String[]{"--proxyPortRange", "9091-9093"};
+        return new String[] { "--proxyPortRange", "9091-9093" };
     }
 
     @Test
     public void testAutoAssignment() throws Exception {
-        int[] ports = {9091, 9092, 9093};
+        int[] ports = { 9091, 9092, 9093 };
         LegacyProxyServer p;
-        for(int port : ports){
+        for (int port : ports) {
             p = proxyManager.create(new HashMap<String, String>());
             assertEquals(port, p.getPort());
         }
-        try{
+        try {
             proxyManager.create(new HashMap<String, String>());
             fail();
-        }catch(ProxyPortsExhaustedException e){
+        } catch (ProxyPortsExhaustedException e) {
             proxyManager.delete(9093);
             p = proxyManager.create(new HashMap<String, String>());
             assertEquals(9093, p.getPort());
@@ -41,7 +43,7 @@ public class ProxyPortAssignmentTest extends ProxyManagerTest {
             p = proxyManager.create(new HashMap<String, String>());
             assertEquals(9091, p.getPort());
 
-            for(int port : ports){
+            for (int port : ports) {
                 proxyManager.delete(port);
             }
         }
@@ -51,10 +53,10 @@ public class ProxyPortAssignmentTest extends ProxyManagerTest {
     public void testManualAssignment() throws Exception {
         LegacyProxyServer p = proxyManager.create(new HashMap<String, String>(), 9094);
         assertEquals(9094, p.getPort());
-        try{
+        try {
             proxyManager.create(new HashMap<String, String>(), 9094);
             fail();
-        }catch(ProxyExistsException e){
+        } catch (ProxyExistsException e) {
             assertEquals(9094, e.getPort());
             proxyManager.delete(9094);
         }
@@ -80,10 +82,44 @@ public class ProxyPortAssignmentTest extends ProxyManagerTest {
         System.out.println(entries.size());
         System.out.println(pageref);
 
-        try{
+        try {
             proxyManager.create(new HashMap<String, String>(), 9094);
             fail();
-        }catch(ProxyExistsException e){
+        } catch (ProxyExistsException e) {
+            assertEquals(9094, e.getPort());
+            proxyManager.delete(9094);
+        }
+    }
+
+    @Test
+    public void testHarEntriesContainingUrl() throws Exception {
+        LegacyProxyServer p = proxyManager.create(new HashMap<String, String>(), 9094);
+        String url = "https://logs1257.at.pagesjaunes.fr/hit.xiti?s=483324&s2=2&p=LR_BI::barre_lr::contactpro::transac_sante_ouvrir_calendrier_rdv&clic=A&hl=14x9x6&r=1600x900x24x24&stc={\"idRequete\":\"2411485265252937233785522538960\",\"localiterechercheeYESPB\":\"L07505600\",\"Coderubrique\":\"58050400\",\"OASid\":\"wKjqb1iHIO0AB4To\",\"LRFiltre\":\"\",\"LRTrie\":\"\",\"DeviceType\":\"0\"}";
+
+        p.newHar("1234");
+
+        //Mock Entry dans le Har
+        HarEntry entry = new HarEntry("1234");
+        //Mock Request dans le HarEntry
+        HarRequest request = new HarRequest();
+        request.setUrl(url);
+
+        entry.setRequest(request);
+        HarLog log = new HarLog();
+        log.setEntry(entry);
+        log.setPage(new HarPage("1234"));
+        p.getHar().setLog(log);
+
+        //Recuperer les entries du Har
+        List<HarEntry> entries = p.getEntriesWithPageRefContainingUrl("1234", "https://logs1257.at.pagesjaunes.fr/hit.xiti?");
+        String pageref = entries.get(0).getPageref();
+        System.out.println(entries.size());
+        System.out.println(pageref);
+
+        try {
+            proxyManager.create(new HashMap<String, String>(), 9094);
+            fail();
+        } catch (ProxyExistsException e) {
             assertEquals(9094, e.getPort());
             proxyManager.delete(9094);
         }

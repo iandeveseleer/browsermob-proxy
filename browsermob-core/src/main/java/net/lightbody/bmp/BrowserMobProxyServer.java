@@ -9,6 +9,7 @@ import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpRequest;
 import net.lightbody.bmp.client.ClientUtil;
 import net.lightbody.bmp.core.har.Har;
+import net.lightbody.bmp.core.har.HarEntry;
 import net.lightbody.bmp.core.har.HarLog;
 import net.lightbody.bmp.core.har.HarNameVersion;
 import net.lightbody.bmp.core.har.HarPage;
@@ -568,6 +569,21 @@ public class BrowserMobProxyServer implements BrowserMobProxy {
         currentHarPage = newPage;
 
         return endOfPageHar;
+    }
+
+    @Override
+    public List<HarEntry> getEntriesWithPageRef(String pageRef) {
+
+        List<HarEntry> entries = new ArrayList<HarEntry>();
+
+        //Iterate on each entry of Har to find one which got pageRef
+        for (HarEntry entry : getHar().getLog().getEntries()) {
+            if(entry.getPageref().equals(pageRef))
+            {
+                entries.add(entry);
+            }
+        }
+        return entries;
     }
 
     @Override

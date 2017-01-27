@@ -15,6 +15,7 @@ import com.google.sitebricks.http.Put;
 import net.lightbody.bmp.BrowserMobProxy;
 import net.lightbody.bmp.BrowserMobProxyServer;
 import net.lightbody.bmp.core.har.Har;
+import net.lightbody.bmp.core.har.HarEntry;
 import net.lightbody.bmp.exception.ProxyExistsException;
 import net.lightbody.bmp.exception.ProxyPortsExhaustedException;
 import net.lightbody.bmp.exception.UnsupportedCharsetException;
@@ -47,6 +48,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 
 @At("/proxy")
@@ -178,6 +180,17 @@ public class ProxyResource {
         proxy.newPage(pageRef, pageTitle);
 
         return Reply.saying().ok();
+    }
+
+    @Get
+    @At("/:port/har/entries/:pageRef")
+    public Reply<?> getEntries(@Named("port") int port, @Named("pageRef") String pageRef, Request<String> request) {
+        LegacyProxyServer proxy = proxyManager.get(port);
+        if (proxy == null) {
+            return Reply.saying().notFound();
+        }
+
+        return Reply.with(proxy.getEntriesWithPageRef(pageRef)).as(Json.class);
     }
 
     @Get

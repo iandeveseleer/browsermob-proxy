@@ -1,6 +1,8 @@
 package net.lightbody.bmp;
 
 import net.lightbody.bmp.core.har.Har;
+import net.lightbody.bmp.core.har.HarEntry;
+import net.lightbody.bmp.core.har.HarLog;
 import net.lightbody.bmp.filters.RequestFilter;
 import net.lightbody.bmp.filters.ResponseFilter;
 import net.lightbody.bmp.mitm.TrustSource;
@@ -15,6 +17,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.Collection;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -68,7 +71,7 @@ public interface BrowserMobProxy {
      * @throws java.lang.IllegalStateException if the proxy has not been started.
      */
     void stop();
-    
+
     /**
      * Like {@link #stop()}, shuts down the proxy server and no longer accepts incoming connections, but does not wait for any existing
      * network traffic to cease. Any existing connections to clients or to servers may be force-killed immediately.
@@ -221,6 +224,16 @@ public interface BrowserMobProxy {
      * @throws java.lang.IllegalStateException if HAR capture has not been enabled via {@link #newHar()} or {@link #newHar(String)}
      */
     Har newPage(String pageRef, String pageTitle);
+
+
+    /**
+     * Starts a new HAR page using the specified pageRef as the page name and the pageTitle as the page title. Populates the
+     * {@link net.lightbody.bmp.core.har.HarPageTimings#onLoad} value based on the amount of time the current page has been captured.
+     *
+     * @param pageRef name of the page in Har
+     * @return the HarLog with only entries which got the pageRef tag
+     */
+    List<HarEntry> getEntriesWithPageRef(String pageRef);
 
     /**
      * Stops capturing traffic in the HAR. Populates the {@link net.lightbody.bmp.core.har.HarPageTimings#onLoad} value for the current page

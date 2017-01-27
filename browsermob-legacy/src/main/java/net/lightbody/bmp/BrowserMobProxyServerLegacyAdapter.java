@@ -3,6 +3,8 @@ package net.lightbody.bmp;
 import com.google.common.collect.ImmutableList;
 import com.google.common.net.HostAndPort;
 import net.lightbody.bmp.client.ClientUtil;
+import net.lightbody.bmp.core.har.HarEntry;
+import net.lightbody.bmp.core.har.HarLog;
 import net.lightbody.bmp.exception.NameResolutionException;
 import net.lightbody.bmp.proxy.BlacklistEntry;
 import net.lightbody.bmp.proxy.CaptureType;

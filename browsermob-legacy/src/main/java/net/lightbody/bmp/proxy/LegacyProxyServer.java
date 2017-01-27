@@ -2,6 +2,8 @@ package net.lightbody.bmp.proxy;
 
 import net.lightbody.bmp.BrowserMobProxy;
 import net.lightbody.bmp.core.har.Har;
+import net.lightbody.bmp.core.har.HarEntry;
+import net.lightbody.bmp.core.har.HarLog;
 import net.lightbody.bmp.exception.NameResolutionException;
 import net.lightbody.bmp.proxy.http.RequestInterceptor;
 import net.lightbody.bmp.proxy.http.ResponseInterceptor;
@@ -135,4 +137,6 @@ public interface LegacyProxyServer {
     void waitForNetworkTrafficToStop(long quietPeriodInMs, long timeoutInMs);
 
     void setOptions(Map<String, String> options);
+
+    List<HarEntry> getEntriesWithPageRef(String pPageRef);
 }

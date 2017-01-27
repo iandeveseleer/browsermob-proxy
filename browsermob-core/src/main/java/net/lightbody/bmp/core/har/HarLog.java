@@ -53,8 +53,16 @@ public class HarLog {
         return pages;
     }
 
+    public void setPage(HarPage pPage) {
+        this.pages.add(pPage);
+    }
+
     public List<HarEntry> getEntries() {
         return entries;
+    }
+
+    public void setEntry(HarEntry entry) {
+        this.entries.add(entry);
     }
 
     public String getComment() {

@@ -2,6 +2,9 @@ package net.lightbody.bmp.proxy;
 
 import net.lightbody.bmp.BrowserMobProxy;
 import net.lightbody.bmp.BrowserMobProxyServer;
+import net.lightbody.bmp.core.har.HarEntry;
+import net.lightbody.bmp.core.har.HarLog;
+import net.lightbody.bmp.core.har.HarPage;
 import net.lightbody.bmp.proxy.test.util.MockServerTest;
 import net.lightbody.bmp.proxy.test.util.NewProxyServerTestUtil;
 import org.apache.http.HttpResponse;
@@ -12,10 +15,13 @@ import org.mockserver.matchers.Times;
 import org.mockserver.model.Delay;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockserver.model.HttpRequest.request;
 import static org.mockserver.model.HttpResponse.response;
 
@@ -90,5 +96,29 @@ public class NetworkTest extends MockServerTest {
         } finally {
             proxy.abort();
         }
+    }
+
+    @Test
+    public void testHarEntries() throws Exception {
+        BrowserMobProxy proxy = new BrowserMobProxyServer();
+        proxy.setLatency(2, TimeUnit.SECONDS);
+        proxy.start();
+
+        proxy.newHar("1234");
+
+        //Mock Entry dans le Har
+        HarEntry entry = new HarEntry("1234");
+        HarLog log = new HarLog();
+        log.setEntry(entry);
+        log.setPage(new HarPage("1234"));
+        proxy.getHar().setLog(log);
+
+        //Recuperer les entries du Har
+        List<HarEntry> entries = proxy.getEntriesWithPageRef("1234");
+        HarEntry pageref = entries.get(0);
+        System.out.println(entries.size());
+        System.out.println(pageref.getPageref());
+
+        proxy.abort();
     }
 }

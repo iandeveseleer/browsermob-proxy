@@ -8,53 +8,20 @@ import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpObject;
 import io.netty.handler.codec.http.HttpRequest;
 import net.lightbody.bmp.client.ClientUtil;
-import net.lightbody.bmp.core.har.Har;
-import net.lightbody.bmp.core.har.HarEntry;
-import net.lightbody.bmp.core.har.HarLog;
-import net.lightbody.bmp.core.har.HarNameVersion;
-import net.lightbody.bmp.core.har.HarPage;
-import net.lightbody.bmp.filters.AddHeadersFilter;
-import net.lightbody.bmp.filters.AutoBasicAuthFilter;
-import net.lightbody.bmp.filters.BlacklistFilter;
-import net.lightbody.bmp.filters.BrowserMobHttpFilterChain;
-import net.lightbody.bmp.filters.HarCaptureFilter;
-import net.lightbody.bmp.filters.HttpConnectHarCaptureFilter;
-import net.lightbody.bmp.filters.HttpsHostCaptureFilter;
-import net.lightbody.bmp.filters.HttpsOriginalHostCaptureFilter;
-import net.lightbody.bmp.filters.LatencyFilter;
-import net.lightbody.bmp.filters.RegisterRequestFilter;
-import net.lightbody.bmp.filters.RequestFilter;
-import net.lightbody.bmp.filters.RequestFilterAdapter;
-import net.lightbody.bmp.filters.ResolvedHostnameCacheFilter;
-import net.lightbody.bmp.filters.ResponseFilter;
-import net.lightbody.bmp.filters.ResponseFilterAdapter;
-import net.lightbody.bmp.filters.RewriteUrlFilter;
-import net.lightbody.bmp.filters.UnregisterRequestFilter;
-import net.lightbody.bmp.filters.WhitelistFilter;
+import net.lightbody.bmp.core.har.*;
+import net.lightbody.bmp.filters.*;
 import net.lightbody.bmp.mitm.KeyStoreFileCertificateSource;
 import net.lightbody.bmp.mitm.TrustSource;
 import net.lightbody.bmp.mitm.keys.ECKeyGenerator;
 import net.lightbody.bmp.mitm.keys.RSAKeyGenerator;
 import net.lightbody.bmp.mitm.manager.ImpersonatingMitmManager;
-import net.lightbody.bmp.proxy.ActivityMonitor;
-import net.lightbody.bmp.proxy.BlacklistEntry;
-import net.lightbody.bmp.proxy.CaptureType;
-import net.lightbody.bmp.proxy.RewriteRule;
-import net.lightbody.bmp.proxy.Whitelist;
+import net.lightbody.bmp.proxy.*;
 import net.lightbody.bmp.proxy.auth.AuthType;
 import net.lightbody.bmp.proxy.dns.AdvancedHostResolver;
 import net.lightbody.bmp.proxy.dns.DelegatingHostResolver;
 import net.lightbody.bmp.util.BrowserMobHttpUtil;
 import net.lightbody.bmp.util.BrowserMobProxyUtil;
-import org.littleshoot.proxy.ChainedProxy;
-import org.littleshoot.proxy.ChainedProxyAdapter;
-import org.littleshoot.proxy.ChainedProxyManager;
-import org.littleshoot.proxy.HttpFilters;
-import org.littleshoot.proxy.HttpFiltersSource;
-import org.littleshoot.proxy.HttpFiltersSourceAdapter;
-import org.littleshoot.proxy.HttpProxyServer;
-import org.littleshoot.proxy.HttpProxyServerBootstrap;
-import org.littleshoot.proxy.MitmManager;
+import org.littleshoot.proxy.*;
 import org.littleshoot.proxy.impl.DefaultHttpProxyServer;
 import org.littleshoot.proxy.impl.ProxyUtils;
 import org.littleshoot.proxy.impl.ThreadPoolConfiguration;
@@ -63,16 +30,7 @@ import org.slf4j.LoggerFactory;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.TimeUnit;
@@ -311,20 +269,19 @@ public class BrowserMobProxyServer implements BrowserMobProxy {
         }
 
 
+        if (mitmManager == null) {
+            mitmManager = ImpersonatingMitmManager.builder()
+                    .rootCertificateSource(new KeyStoreFileCertificateSource(
+                            KEYSTORE_TYPE,
+                            useEcc ? EC_KEYSTORE_RESOURCE : RSA_KEYSTORE_RESOURCE,
+                            KEYSTORE_PRIVATE_KEY_ALIAS,
+                            KEYSTORE_PASSWORD))
+                    .serverKeyGenerator(useEcc ? new ECKeyGenerator() : new RSAKeyGenerator())
+                    .trustSource(trustSource)
+                    .build();
+        }
 
-            if (mitmManager == null) {
-                mitmManager = ImpersonatingMitmManager.builder()
-                        .rootCertificateSource(new KeyStoreFileCertificateSource(
-                                KEYSTORE_TYPE,
-                                useEcc ? EC_KEYSTORE_RESOURCE : RSA_KEYSTORE_RESOURCE,
-                                KEYSTORE_PRIVATE_KEY_ALIAS,
-                                KEYSTORE_PASSWORD))
-                        .serverKeyGenerator(useEcc ? new ECKeyGenerator() : new RSAKeyGenerator())
-                        .trustSource(trustSource)
-                        .build();
-            }
-
-            bootstrap.withManInTheMiddle(mitmManager);
+        bootstrap.withManInTheMiddle(mitmManager);
 
 
         if (readBandwidthLimitBps > 0 || writeBandwidthLimitBps > 0) {
@@ -354,7 +311,7 @@ public class BrowserMobProxyServer implements BrowserMobProxy {
                                 String chainedProxyAuth = chainedProxyCredentials;
                                 if (chainedProxyAuth != null) {
                                     if (httpObject instanceof HttpRequest) {
-                                        HttpHeaders.addHeader((HttpRequest)httpObject, HttpHeaders.Names.PROXY_AUTHORIZATION, "Basic " + chainedProxyAuth);
+                                        HttpHeaders.addHeader((HttpRequest) httpObject, HttpHeaders.Names.PROXY_AUTHORIZATION, "Basic " + chainedProxyAuth);
                                     }
                                 }
                             }
@@ -578,8 +535,7 @@ public class BrowserMobProxyServer implements BrowserMobProxy {
 
         //Iterate on each entry of Har to find one which got pageRef
         for (HarEntry entry : getHar().getLog().getEntries()) {
-            if(entry.getPageref().equals(pageRef))
-            {
+            if (entry.getPageref().equals(pageRef)) {
                 entries.add(entry);
             }
         }
@@ -591,10 +547,10 @@ public class BrowserMobProxyServer implements BrowserMobProxy {
 
         List<HarEntry> entries = new ArrayList<HarEntry>();
 
+
         //Iterate on entries from HarEntry ArrayList
         for (HarEntry entry : getEntriesWithPageRef(pageRef)) {
-            if(entry.getRequest().getUrl().contains(pUrl))
-            {
+            if (entry.getRequest().getUrl().contains(pUrl)) {
                 entries.add(entry);
             }
         }
@@ -899,7 +855,7 @@ public class BrowserMobProxyServer implements BrowserMobProxy {
 
     /**
      * Instructs this proxy to route traffic through an upstream proxy.
-     *
+     * <p>
      * <b>Note:</b> Using {@link #setChainedProxyManager(ChainedProxyManager)} will supersede any value set by this method. A chained
      * proxy must be set before the proxy is started, though it can be changed after the proxy is started.
      *
@@ -922,7 +878,7 @@ public class BrowserMobProxyServer implements BrowserMobProxy {
     /**
      * Allows access to the LittleProxy {@link ChainedProxyManager} for fine-grained control of the chained proxies. To enable a single
      * chained proxy, {@link BrowserMobProxy#setChainedProxy(InetSocketAddress)} is generally more convenient.
-     *
+     * <p>
      * <b>Note:</b> The chained proxy manager must be enabled before calling {@link #start()}.
      *
      * @param chainedProxyManager chained proxy manager to enable

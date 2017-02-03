@@ -94,7 +94,7 @@ public class ProxyPortAssignmentTest extends ProxyManagerTest {
     @Test
     public void testHarEntriesContainingUrl() throws Exception {
         LegacyProxyServer p = proxyManager.create(new HashMap<String, String>(), 9094);
-        String url = "https://logs1257.at.pagesjaunes.fr/hit.xiti?s=483324&s2=2&p=LR_BI::barre_lr::contactpro::transac_sante_ouvrir_calendrier_rdv&clic=A&hl=14x9x6&r=1600x900x24x24&stc={\"idRequete\":\"2411485265252937233785522538960\",\"localiterechercheeYESPB\":\"L07505600\",\"Coderubrique\":\"58050400\",\"OASid\":\"wKjqb1iHIO0AB4To\",\"LRFiltre\":\"\",\"LRTrie\":\"\",\"DeviceType\":\"0\"}";
+        String url = "https://test.url.fr/hit.xiti?p=parametre";
 
         p.newHar("1234");
 
@@ -111,7 +111,7 @@ public class ProxyPortAssignmentTest extends ProxyManagerTest {
         p.getHar().setLog(log);
 
         //Recuperer les entries du Har
-        List<HarEntry> entries = p.getEntriesWithPageRefContainingUrl("1234", "https://logs1257.at.pagesjaunes.fr/hit.xiti?");
+        List<HarEntry> entries = p.getEntriesWithPageRefContainingUrl("1234", "https://test.url.fr/hit.xiti?");
         String pageref = entries.get(0).getPageref();
         System.out.println(entries.size());
         System.out.println(pageref);

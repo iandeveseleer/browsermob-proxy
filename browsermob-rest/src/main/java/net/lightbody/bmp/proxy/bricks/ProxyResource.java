@@ -193,6 +193,18 @@ public class ProxyResource {
         return Reply.with(proxy.getEntriesWithPageRef(pageRef)).as(Json.class);
     }
 
+    @Post
+    @At("/:port/har/entries")
+    public Reply<?> getEntries(@Named("port") int port, Request<String> request) {
+        String pageRef = request.param("pageRef");
+        LegacyProxyServer proxy = proxyManager.get(port);
+        if (proxy == null) {
+            return Reply.saying().notFound();
+        }
+
+        return Reply.with(proxy.getEntriesWithPageRef(pageRef)).as(Json.class);
+    }
+
     @Get
     @At("/:port/har/entries/:pageRef/url/:pattern")
     public Reply<?> getEntriesContainingUrl(@Named("port") int port, @Named("pageRef") String pageRef, @Named("pattern") String pattern, Request<String> request) {

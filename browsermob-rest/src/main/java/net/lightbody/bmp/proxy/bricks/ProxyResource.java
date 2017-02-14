@@ -193,8 +193,8 @@ public class ProxyResource {
         return Reply.with(proxy.getEntriesWithPageRef(pageRef)).as(Json.class);
     }
 
-    @Post
-    @At("/:port/har/entries")
+    @Put
+    @At("/:port/har/entries/pageRef")
     public Reply<?> getEntries(@Named("port") int port, Request<String> request) {
         String pageRef = request.param("pageRef");
         LegacyProxyServer proxy = proxyManager.get(port);

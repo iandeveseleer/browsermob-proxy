@@ -57,6 +57,10 @@ public class HarLog {
         this.pages.add(pPage);
     }
 
+    public void removePage(HarPage pPage) {
+        this.pages.remove(pPage);
+    }
+
     public List<HarEntry> getEntries() {
         return entries;
     }

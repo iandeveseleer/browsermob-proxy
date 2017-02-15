@@ -228,9 +228,9 @@ public interface BrowserMobProxy {
 
     /**
      * @param pageRef name of the page in Har
-     * @return HarEntry ArrayList with only entries which got the specified parameters
+     * @return HarLog with only entries which got the specified parameters
      */
-    List<HarEntry> getEntriesWithPageRef(String pageRef);
+    HarLog getEntriesWithPageRef(String pageRef);
 
     /**
 

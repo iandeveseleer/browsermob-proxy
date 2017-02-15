@@ -529,16 +529,17 @@ public class BrowserMobProxyServer implements BrowserMobProxy {
     }
 
     @Override
-    public HarLog getEntriesWithPageRef(String pageRef) {
+    public List<HarEntry> getEntriesWithPageRef(String pageRef) {
 
-        HarLog log = new HarLog();
+        List<HarEntry> entries = new ArrayList<HarEntry>();
+
         //Iterate on each entry of Har to find one which got pageRef
-                for (HarEntry entry : getHar().getLog().getEntries()) {
+        for (HarEntry entry : getHar().getLog().getEntries()) {
             if (entry.getPageref().equals(pageRef)) {
-                log.setEntry(entry);
+                entries.add(entry);
             }
         }
-        return log;
+        return entries;
     }
 
 
@@ -569,7 +570,7 @@ public class BrowserMobProxyServer implements BrowserMobProxy {
 
 
         //Iterate on entries from HarEntry ArrayList
-        for (HarEntry entry : getEntriesWithPageRef(pageRef).getEntries()) {
+        for (HarEntry entry : getEntriesWithPageRef(pageRef)) {
             if (entry.getRequest().getUrl().contains(pUrl)) {
                 entries.add(entry);
             }

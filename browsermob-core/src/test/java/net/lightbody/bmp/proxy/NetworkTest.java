@@ -114,7 +114,7 @@ public class NetworkTest extends MockServerTest {
         proxy.getHar().setLog(log);
 
         //Recuperer les entries du Har
-        List<HarEntry> entries = proxy.getEntriesWithPageRef("1234").getEntries();
+        List<HarEntry> entries = proxy.getEntriesWithPageRef("1234");
         HarEntry pageref = entries.get(0);
         System.out.println(entries.size());
         System.out.println(pageref.getPageref());

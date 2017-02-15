@@ -441,18 +441,18 @@ public class ProxyServer implements LegacyProxyServer, BrowserMobProxy {
     }
 
     @Override
-    public HarLog getEntriesWithPageRef(String pageRef) {
+    public List<HarEntry> getEntriesWithPageRef(String pageRef) {
 
-        HarLog log = new HarLog();
-        //Iterate on each entry of Har to find one which got pageRef
+        List<HarEntry> entries = new ArrayList<HarEntry>();
+
+        //Iterate on entries from Har
         for (HarEntry entry : client.getHar().getLog().getEntries()) {
             if (entry.getPageref().equals(pageRef)) {
-                log.setEntry(entry);
+                entries.add(entry);
             }
         }
-        return log;
+        return entries;
     }
-
 
     @Override
     public void deletePageAndEntries(String pageRef) {
@@ -480,7 +480,7 @@ public class ProxyServer implements LegacyProxyServer, BrowserMobProxy {
         List<HarEntry> entries = new ArrayList<HarEntry>();
 
         //Iterate on entries from HarEntry ArrayList
-        for (HarEntry entry : getEntriesWithPageRef(pageRef).getEntries()) {
+        for (HarEntry entry : getEntriesWithPageRef(pageRef)) {
             if (entry.getRequest().getUrl().contains(pUrl)) {
                 entries.add(entry);
             }

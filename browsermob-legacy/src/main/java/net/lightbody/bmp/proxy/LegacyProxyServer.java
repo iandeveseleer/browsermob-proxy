@@ -140,7 +140,7 @@ public interface LegacyProxyServer {
 
     void setOptions(Map<String, String> options);
 
-    HarLog getEntriesWithPageRef(String pPageRef);
+    List<HarEntry> getEntriesWithPageRef(String pPageRef);
 
     List<HarEntry> getEntriesWithPageRefContainingUrl(String pPageRef, String pUrl);
 }

@@ -81,7 +81,7 @@ public class ProxyPortAssignmentTest extends ProxyManagerTest {
         p.getHar().setLog(log);
 
         //Recuperer les entries du Har
-        List<HarEntry> entries = p.getEntriesWithPageRef(pageRef);
+        List<HarEntry> entries = p.getEntriesWithPageRef(pageRef).getEntries();
         String pageref = entries.get(0).getPageref();
         System.out.println(entries.size());
         System.out.println(pageref);

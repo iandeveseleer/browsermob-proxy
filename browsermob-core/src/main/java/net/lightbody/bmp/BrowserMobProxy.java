@@ -249,6 +249,8 @@ public interface BrowserMobProxy {
      */
     Har endHar();
 
+    void deletePageAndEntries(String pageRef);
+
     /**
      * Sets the maximum bandwidth to consume when reading server responses.
      *

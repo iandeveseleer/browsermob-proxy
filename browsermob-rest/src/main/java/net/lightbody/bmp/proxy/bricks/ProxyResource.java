@@ -182,9 +182,34 @@ public class ProxyResource {
         return Reply.saying().ok();
     }
 
+    @Delete
+    @At("/:port/har/pageRef/:pageRef")
+    public Reply<?> setPage(@Named("port") int port, @Named("pageRef") String pageRef, Request<String> request) {
+        LegacyProxyServer proxy = proxyManager.get(port);
+        if (proxy == null) {
+            return Reply.saying().notFound();
+        }
+
+        proxy.deletePageAndEntries(pageRef);
+
+        return Reply.saying().ok();
+    }
+
     @Get
     @At("/:port/har/entries/:pageRef")
     public Reply<?> getEntries(@Named("port") int port, @Named("pageRef") String pageRef, Request<String> request) {
+        LegacyProxyServer proxy = proxyManager.get(port);
+        if (proxy == null) {
+            return Reply.saying().notFound();
+        }
+
+        return Reply.with(proxy.getEntriesWithPageRef(pageRef)).as(Json.class);
+    }
+
+    @Put
+    @At("/:port/har/entries/pageRef")
+    public Reply<?> getEntries(@Named("port") int port, Request<String> request) {
+        String pageRef = request.param("pageRef");
         LegacyProxyServer proxy = proxyManager.get(port);
         if (proxy == null) {
             return Reply.saying().notFound();

@@ -4,11 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import net.lightbody.bmp.BrowserMobProxy;
 import net.lightbody.bmp.client.ClientUtil;
-import net.lightbody.bmp.core.har.Har;
-import net.lightbody.bmp.core.har.HarEntry;
-import net.lightbody.bmp.core.har.HarLog;
-import net.lightbody.bmp.core.har.HarNameVersion;
-import net.lightbody.bmp.core.har.HarPage;
+import net.lightbody.bmp.core.har.*;
 import net.lightbody.bmp.core.util.ThreadUtils;
 import net.lightbody.bmp.exception.JettyException;
 import net.lightbody.bmp.exception.NameResolutionException;
@@ -36,20 +32,8 @@ import org.openqa.selenium.Proxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.net.*;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
@@ -62,8 +46,8 @@ import java.util.regex.Pattern;
  * <h1>Unsupported operations</h1>
  * The following {@link BrowserMobProxy} operations are not supported and will be ignored:
  * <ul>
- *     <li>{@link BrowserMobProxy#getServerBindAddress()} and {@link #start(int, java.net.InetAddress, java.net.InetAddress)} - server bind addresses are not supported</li>
- *     <li>{@link BrowserMobProxy#stopAutoAuthorization(String)}</li>
+ * <li>{@link BrowserMobProxy#getServerBindAddress()} and {@link #start(int, java.net.InetAddress, java.net.InetAddress)} - server bind addresses are not supported</li>
+ * <li>{@link BrowserMobProxy#stopAutoAuthorization(String)}</li>
  * </ul>
  *
  * @deprecated Use the {@link BrowserMobProxy} interface to preserve compatibility with future BrowserMob Proxy versions.
@@ -111,7 +95,7 @@ public class ProxyServer implements LegacyProxyServer, BrowserMobProxy {
     public void start() {
         //create a stream manager that will be capped to 100 Megabits
         //remember that by default it is disabled!
-        streamManager = new StreamManager( 100 * BandwidthLimiter.OneMbps );
+        streamManager = new StreamManager(100 * BandwidthLimiter.OneMbps);
 
         server = new Server();
         HttpListener listener = new SocketListener(new InetAddrPort(getLocalHost(), getPort()));
@@ -134,12 +118,12 @@ public class ProxyServer implements LegacyProxyServer, BrowserMobProxy {
         handler.setHttpClient(client);
 
         context.addHandler(handler);
-       	try {
-			server.start();
-		} catch (Exception e) {
-			// wrapping unhelpful Jetty Exception into a RuntimeException
-			throw new JettyException("Exception occurred when starting the server", e);
-		}
+        try {
+            server.start();
+        } catch (Exception e) {
+            // wrapping unhelpful Jetty Exception into a RuntimeException
+            throw new JettyException("Exception occurred when starting the server", e);
+        }
 
         setPort(listener.getPort());
 
@@ -173,13 +157,13 @@ public class ProxyServer implements LegacyProxyServer, BrowserMobProxy {
         Proxy proxy = new Proxy();
         proxy.setProxyType(Proxy.ProxyType.MANUAL);
         InetAddress connectableLocalHost;
-		try {
-			connectableLocalHost = getConnectableLocalHost();
-		} catch (UnknownHostException e) {
-			// InetAddress cannot resolve a local host. since seleniumProxy() is designed to be called within a Selenium test,
-			// this is most likely a fatal error that does not need to be a checked exception.
-			throw new NameResolutionException("Error getting local host when creating seleniumProxy", e);
-		}
+        try {
+            connectableLocalHost = getConnectableLocalHost();
+        } catch (UnknownHostException e) {
+            // InetAddress cannot resolve a local host. since seleniumProxy() is designed to be called within a Selenium test,
+            // this is most likely a fatal error that does not need to be a checked exception.
+            throw new NameResolutionException("Error getting local host when creating seleniumProxy", e);
+        }
         String proxyStr = String.format("%s:%d", connectableLocalHost.getCanonicalHostName(), getPort());
         proxy.setHttpProxy(proxyStr);
         proxy.setSslProxy(proxyStr);
@@ -204,10 +188,10 @@ public class ProxyServer implements LegacyProxyServer, BrowserMobProxy {
             if (server != null) {
                 server.stop();
             }
-		} catch (InterruptedException e) {
-			// the try/catch block in server.stop() is manufacturing a phantom InterruptedException, so this should not occur
-			throw new JettyException("Exception occurred when stopping the server", e);
-		}
+        } catch (InterruptedException e) {
+            // the try/catch block in server.stop() is manufacturing a phantom InterruptedException, so this should not occur
+            throw new JettyException("Exception occurred when stopping the server", e);
+        }
     }
 
     @Override
@@ -236,10 +220,10 @@ public class ProxyServer implements LegacyProxyServer, BrowserMobProxy {
 
     /**
      * Get the the InetAddress that the Proxy server binds to when it starts.
-     *
+     * <p>
      * If not otherwise set via {@link #setLocalHost(InetAddress)}, defaults to
      * 0.0.0.0 (i.e. bind to any interface).
-     *
+     * <p>
      * Note - just because we bound to the address, doesn't mean that it can be
      * reached. E.g. trying to connect to 0.0.0.0 is going to fail. Use
      * {@link #getConnectableLocalHost()} if you're looking for a host that can be
@@ -248,13 +232,13 @@ public class ProxyServer implements LegacyProxyServer, BrowserMobProxy {
     @Override
     public InetAddress getLocalHost() {
         if (localHost == null) {
-        	try {
-        		localHost = InetAddress.getByName("0.0.0.0");
-        	} catch (UnknownHostException e) {
-        		// InetAddress.getByName javadocs state: "If a literal IP address is supplied, only the validity of the address format is checked."
-        		// Since the format of 0.0.0.0 is valid, getByName should never throw UnknownHostException
-        		throw new RuntimeException("InetAddress.getByName failed to look up 0.0.0.0", e);
-        	}
+            try {
+                localHost = InetAddress.getByName("0.0.0.0");
+            } catch (UnknownHostException e) {
+                // InetAddress.getByName javadocs state: "If a literal IP address is supplied, only the validity of the address format is checked."
+                // Since the format of 0.0.0.0 is valid, getByName should never throw UnknownHostException
+                throw new RuntimeException("InetAddress.getByName failed to look up 0.0.0.0", e);
+            }
         }
         return localHost;
     }
@@ -262,19 +246,19 @@ public class ProxyServer implements LegacyProxyServer, BrowserMobProxy {
     /**
      * Return a plausible {@link InetAddress} that other processes can use to
      * contact the proxy.
-     *
+     * <p>
      * In essence, this is the same as {@link #getLocalHost()}, but avoids
      * returning 0.0.0.0. as no-one can connect to that. If no other host has
      * been set via {@link #setLocalHost(InetAddress)}, will return
      * {@link InetAddress#getLocalHost()}
-     *
+     * <p>
      * No attempt is made to check the address for reachability before it is
      * returned.
      */
     @Override
     public InetAddress getConnectableLocalHost() throws UnknownHostException {
 
-    	if (getLocalHost().equals(InetAddress.getByName("0.0.0.0"))) {
+        if (getLocalHost().equals(InetAddress.getByName("0.0.0.0"))) {
             return InetAddress.getLocalHost();
         } else {
             return getLocalHost();
@@ -284,19 +268,19 @@ public class ProxyServer implements LegacyProxyServer, BrowserMobProxy {
     @Override
     public void setLocalHost(InetAddress localHost) {
         if (localHost.isAnyLocalAddress() ||
-            localHost.isLoopbackAddress()) {
-        	this.localHost = localHost;
+                localHost.isLoopbackAddress()) {
+            this.localHost = localHost;
         } else {
-        	// address is not a local/loopback address, but might still be bound to a local network interface
-        	NetworkInterface localInterface;
-			try {
-				localInterface = NetworkInterface.getByInetAddress(localHost);
-			} catch (SocketException e) {
-				throw new IllegalArgumentException("localHost address must be address of a local adapter (attempted to use: " + localHost + ")", e);
-			}
-        	if (localInterface != null) {
-        		this.localHost = localHost;
-        	} else {
+            // address is not a local/loopback address, but might still be bound to a local network interface
+            NetworkInterface localInterface;
+            try {
+                localInterface = NetworkInterface.getByInetAddress(localHost);
+            } catch (SocketException e) {
+                throw new IllegalArgumentException("localHost address must be address of a local adapter (attempted to use: " + localHost + ")", e);
+            }
+            if (localInterface != null) {
+                this.localHost = localHost;
+            } else {
                 throw new IllegalArgumentException("localHost address must be address of a local adapter (attempted to use: " + localHost + ")");
             }
         }
@@ -463,12 +447,31 @@ public class ProxyServer implements LegacyProxyServer, BrowserMobProxy {
 
         //Iterate on entries from Har
         for (HarEntry entry : client.getHar().getLog().getEntries()) {
-            if(entry.getPageref().equals(pageRef))
-            {
+            if (entry.getPageref().equals(pageRef)) {
                 entries.add(entry);
             }
         }
         return entries;
+    }
+
+    @Override
+    public void deletePageAndEntries(String pageRef) {
+
+        //Remove specified page from Har
+        for (HarPage page : client.getHar().getLog().getPages()) {
+            if(page.getId().equals(pageRef))
+            {
+                //Remove specified entries from Har
+                for (HarEntry entry : client.getHar().getLog().getEntries()) {
+                    if(entry.getPageref().equals(pageRef))
+                    {
+                        client.getHar().getLog().getEntries().remove(entry);
+                    }
+                }
+                client.getHar().getLog().removePage(page);
+            }
+        }
+
     }
 
     @Override
@@ -478,8 +481,7 @@ public class ProxyServer implements LegacyProxyServer, BrowserMobProxy {
 
         //Iterate on entries from HarEntry ArrayList
         for (HarEntry entry : getEntriesWithPageRef(pageRef)) {
-            if(entry.getRequest().getUrl().contains(pUrl))
-            {
+            if (entry.getRequest().getUrl().contains(pUrl)) {
                 entries.add(entry);
             }
         }
@@ -683,12 +685,12 @@ public class ProxyServer implements LegacyProxyServer, BrowserMobProxy {
     }
 
     public void clearRewriteRules() {
-    	client.clearRewriteRules();
+        client.clearRewriteRules();
     }
 
     @Override
     public void blacklistRequests(String pattern, int responseCode) {
-    	client.blacklistRequests(pattern, responseCode, null);
+        client.blacklistRequests(pattern, responseCode, null);
     }
 
     @Override
@@ -723,22 +725,22 @@ public class ProxyServer implements LegacyProxyServer, BrowserMobProxy {
 
     @Override
     public Collection<BlacklistEntry> getBlacklistedUrls() {
-    	return client.getBlacklistedUrls();
+        return client.getBlacklistedUrls();
     }
 
-	@Override
+    @Override
     public boolean isWhitelistEnabled() {
-		return client.isWhitelistEnabled();
-	}
+        return client.isWhitelistEnabled();
+    }
 
-	/**
-	 * @deprecated use getWhitelistUrls()
-	 */
-	@Override
+    /**
+     * @deprecated use getWhitelistUrls()
+     */
+    @Override
     @Deprecated
-	public List<Pattern> getWhitelistRequests() {
-		return client.getWhitelistRequests();
-	}
+    public List<Pattern> getWhitelistRequests() {
+        return client.getWhitelistRequests();
+    }
 
     @Override
     public Collection<String> getWhitelistUrls() {
@@ -756,12 +758,12 @@ public class ProxyServer implements LegacyProxyServer, BrowserMobProxy {
     }
 
     public int getWhitelistResponseCode() {
-		return client.getWhitelistResponseCode();
-	}
+        return client.getWhitelistResponseCode();
+    }
 
     @Override
     public void clearBlacklist() {
-    	client.clearBlacklist();
+        client.clearBlacklist();
     }
 
     @Override
@@ -782,7 +784,7 @@ public class ProxyServer implements LegacyProxyServer, BrowserMobProxy {
      * <p>
      * <b>Note:</b> This method overwrites any existing whitelist.
      *
-     * @param patterns regular expression patterns matching URLs to whitelist
+     * @param patterns     regular expression patterns matching URLs to whitelist
      * @param responseCode response code to return for non-whitelisted URLs
      */
     @Override
@@ -797,7 +799,7 @@ public class ProxyServer implements LegacyProxyServer, BrowserMobProxy {
      */
     @Override
     public void enableEmptyWhitelist(int responseCode) {
-    	client.whitelistRequests(new String[0], responseCode);
+        client.whitelistRequests(new String[0], responseCode);
     }
 
     @Override
@@ -806,7 +808,7 @@ public class ProxyServer implements LegacyProxyServer, BrowserMobProxy {
     }
 
     public void clearWhitelist() {
-    	client.clearWhitelist();
+        client.clearWhitelist();
     }
 
     @Override

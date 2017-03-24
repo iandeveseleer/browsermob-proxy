@@ -56,7 +56,9 @@ public interface LegacyProxyServer {
 
     void endPage();
 
-    void deletePageAndEntries(String pageRef);
+    void deletePage(String pageRef);
+
+    void deleteEntries(String pageRef);
 
     void setRetryCount(int count);
 

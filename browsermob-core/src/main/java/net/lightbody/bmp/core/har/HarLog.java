@@ -65,6 +65,10 @@ public class HarLog {
         return entries;
     }
 
+    public void removeEntry(HarEntry pEntry) {
+        this.entries.remove(pEntry);
+    }
+
     public void setEntry(HarEntry entry) {
         this.entries.add(entry);
     }

@@ -455,22 +455,28 @@ public class ProxyServer implements LegacyProxyServer, BrowserMobProxy {
     }
 
     @Override
-    public void deletePageAndEntries(String pageRef) {
+    public void deletePage(String pageRef) {
 
         //Remove specified page from Har
         for (HarPage page : client.getHar().getLog().getPages()) {
-            if(page.getId().equals(pageRef))
-            {
-                //Remove specified entries from Har
-                for (HarEntry entry : client.getHar().getLog().getEntries()) {
-                    if(entry.getPageref().equals(pageRef))
-                    {
-                        client.getHar().getLog().getEntries().remove(entry);
-                    }
-                }
+            if (page.getId().equalsIgnoreCase(pageRef)) {
                 client.getHar().getLog().removePage(page);
             }
         }
+
+    }
+
+    @Override
+    public void deleteEntries(String pageRef) {
+
+
+        //Remove specified entries from Har
+        for (HarEntry entry : client.getHar().getLog().getEntries()) {
+            if (entry.getPageref().equalsIgnoreCase(pageRef)) {
+                client.getHar().getLog().removeEntry(entry);
+            }
+        }
+
 
     }
 

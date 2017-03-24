@@ -544,24 +544,31 @@ public class BrowserMobProxyServer implements BrowserMobProxy {
 
 
     @Override
-    public void deletePageAndEntries(String pageRef) {
+    public void deletePage(String pageRef) {
 
         //Remove specified page from Har
         for (HarPage page : getHar().getLog().getPages()) {
-            if(page.getId().equals(pageRef))
-            {
-                //Remove specified entries from Har
-                for (HarEntry entry : getHar().getLog().getEntries()) {
-                    if(entry.getPageref().equals(pageRef))
-                    {
-                        getHar().getLog().getEntries().remove(entry);
-                    }
-                }
+            if (page.getId().equalsIgnoreCase(pageRef)) {
                 getHar().getLog().removePage(page);
             }
         }
 
     }
+
+    @Override
+    public void deleteEntries(String pageRef) {
+
+
+        //Remove specified entries from Har
+        for (HarEntry entry : getHar().getLog().getEntries()) {
+            if (entry.getPageref().equalsIgnoreCase(pageRef)) {
+                getHar().getLog().removeEntry(entry);
+            }
+        }
+
+
+    }
+
 
     @Override
     public List<HarEntry> getEntriesWithPageRefContainingUrl(String pageRef, String pUrl) {

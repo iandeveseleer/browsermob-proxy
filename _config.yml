@@ -1,0 +1,8 @@
+title: Browsermob-proxy
+description: A free utility to help web developers watch and manipulate network traffic from their AJAX applications.
+google_analytics: 
+show_downloads: true
+theme: jekyll-theme-cayman
+
+gems:
+  - jekyll-mentions
